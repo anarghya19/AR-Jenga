@@ -11,20 +11,20 @@
     canvas{display:block}.hidden{display:none!important}
     #intro{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 20%,#3b3157 0,#171522 55%,#0b0a10 100%)}
     .card{width:min(460px,100%);text-align:center}.logo{font-size:clamp(64px,18vw,100px);font-weight:1000;letter-spacing:-.09em;line-height:.8;color:var(--lime);transform:rotate(-2deg);text-shadow:6px 7px 0 #6d37d8}.tag{margin:26px 0 8px;font-size:20px;font-weight:800}.sub{opacity:.72;line-height:1.5;margin:0 auto 28px;max-width:340px}
-    button{border:0;font:inherit;font-weight:900;cursor:pointer}.primary{width:100%;padding:17px 20px;border-radius:18px;background:var(--lime);color:var(--ink);box-shadow:0 7px 0 #7e9a1e}.secondary{width:100%;margin-top:14px;padding:14px;border-radius:16px;background:#ffffff17;color:white;border:1px solid #ffffff25}.note{font-size:12px;opacity:.5;margin-top:18px}
+    button{border:0;font:inherit;font-weight:900;cursor:pointer}.primary{width:100%;padding:17px 20px;border-radius:18px;background:var(--lime);color:var(--ink);box-shadow:0 7px 0 #7e9a1e}.secondary{width:100%;margin-top:14px;padding:14px;border-radius:16px;background:#ffffff17;color:white;border:1px solid #ffffff25}.note{font-size:12px;opacity:.5;margin-top:18px}.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:20px 0}.modeBtn{padding:11px 4px;border-radius:14px;color:white;background:#ffffff10;border:1px solid #ffffff20;font-size:11px}.modeBtn b{display:block;font-size:14px}.modeBtn.active{background:var(--lime);color:var(--ink);box-shadow:0 4px 0 #7e9a1e}
     #hud{position:fixed;inset:0;z-index:5;pointer-events:none}.topbar{display:flex;justify-content:space-between;gap:10px;padding:calc(env(safe-area-inset-top) + 14px) 14px 0}.pill{padding:10px 14px;border-radius:999px;background:#171522d9;backdrop-filter:blur(12px);font-weight:900;border:1px solid #ffffff1e;box-shadow:0 4px 18px #0004}.pill span{color:var(--lime)}
     #message{position:absolute;top:26%;left:50%;transform:translate(-50%,-50%);width:min(88%,420px);text-align:center;font-size:18px;font-weight:900;text-shadow:0 2px 8px #000;background:#171522c7;border:1px solid #ffffff20;border-radius:18px;padding:12px 16px;transition:.25s}
     #crosshair{position:absolute;left:50%;top:48%;width:28px;height:28px;transform:translate(-50%,-50%);border:3px solid white;border-radius:50%;box-shadow:0 0 0 2px #0005}#crosshair:after{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--lime)}
-    #powerWrap{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 102px);height:12px;border:2px solid white;border-radius:20px;overflow:hidden;background:#171522aa}#power{width:0;height:100%;background:linear-gradient(90deg,var(--blue),var(--lime),#ffbf47,var(--pink))}
-    #fire{pointer-events:auto;position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);transform:translateX(-50%);width:72px;height:72px;border-radius:50%;background:var(--pink);color:white;border:5px solid white;box-shadow:0 7px 0 #9d244e,0 10px 25px #0007;font-size:15px;touch-action:none}#fire:active{transform:translate(-50%,5px);box-shadow:0 2px 0 #9d244e}
+    #powerWrap{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 184px);height:10px;border:2px solid white;border-radius:20px;overflow:hidden;background:#171522aa}#power{width:0;height:100%;background:linear-gradient(90deg,var(--blue),var(--lime),#ffbf47,var(--pink))}
+    #sling{pointer-events:auto;position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 10px);width:210px;height:170px;transform:translateX(-50%);touch-action:none;filter:drop-shadow(0 8px 10px #0008)}#fork{position:absolute;left:50%;bottom:8px;width:92px;height:116px;transform:translateX(-50%);border-left:17px solid #d99a43;border-right:17px solid #d99a43;border-bottom:28px solid #d99a43;border-radius:15px 15px 35px 35px;clip-path:polygon(0 0,24% 0,43% 72%,57% 72%,76% 0,100% 0,76% 100%,24% 100%)}.band{position:absolute;height:7px;background:#412516;border-radius:8px;transform-origin:0 50%;pointer-events:none}#ball{position:absolute;left:50%;top:24px;width:54px;height:54px;transform:translate(-50%,0);border-radius:50%;background:radial-gradient(circle at 35% 28%,#ffba83 0 8%,#ff6548 32%,#a92138 100%);border:4px solid white;box-shadow:inset -7px -9px 12px #64122b88,0 5px 12px #0007;display:grid;place-items:center;font-size:11px;font-weight:1000;user-select:none}#pullHint{position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:11px;font-weight:900;white-space:nowrap;text-shadow:0 2px 4px #000}
     #place{pointer-events:auto;position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 28px);transform:translateX(-50%);padding:16px 26px;border-radius:999px;background:var(--lime);color:var(--ink);box-shadow:0 6px 0 #7e9a1e}
     #result{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:#0b0a10d9;backdrop-filter:blur(12px);padding:24px}.resultCard{width:min(390px,100%);background:var(--cream);color:var(--ink);padding:28px;border-radius:28px;text-align:center;box-shadow:0 20px 80px #0008}.resultCard h2{font-size:48px;line-height:.9;margin:4px 0 14px;letter-spacing:-.06em}.resultCard p{font-weight:700;opacity:.7}.emoji{font-size:70px}.resultCard .secondary{color:var(--ink);background:#00000010;border-color:#00000018}
     #noXR{display:none;margin-top:12px;padding:10px;border-radius:10px;background:#ffb4b421;color:#ffd0d0;font-size:13px}
   </style>
 </head>
 <body>
-  <section id="intro"><div class="card"><div class="logo">TOPPLE!</div><p class="tag">Tiny arena. Big consequences.</p><p class="sub">Place the arena on a table, aim with your phone and knock all three Trouble Beans off their platforms.</p><button id="startAR" class="primary">START IN AR</button><button id="practice" class="secondary">PRACTICE WITHOUT AR</button><div id="noXR">AR needs Android Chrome, camera permission and an HTTPS link. Practice mode still works here.</div><p class="note">Best experienced standing near a clear table.</p></div></section>
-  <div id="hud" class="hidden"><div class="topbar"><div class="pill">SHOTS <span id="shots">5</span></div><div class="pill">OUT <span id="score">0</span>/3</div></div><div id="message">Move your phone slowly to find a table</div><div id="crosshair" class="hidden"></div><div id="powerWrap" class="hidden"><div id="power"></div></div><button id="place">PLACE ARENA</button><button id="fire" class="hidden">HOLD</button></div>
+  <section id="intro"><div class="card"><div class="logo">TOPPLE!</div><p class="tag">Tiny arena. Big consequences.</p><p class="sub">Pull, aim and release. Knock all three Trouble Beans off before time runs out.</p><div class="modes"><button class="modeBtn" data-level="chill"><b>CHILL</b>90s · 6 balls</button><button class="modeBtn active" data-level="classic"><b>CLASSIC</b>60s · 5 balls</button><button class="modeBtn" data-level="rush"><b>RUSH</b>35s · 4 balls</button></div><button id="startAR" class="primary">START IN AR</button><button id="practice" class="secondary">PRACTICE WITHOUT AR</button><div id="noXR">AR needs Android Chrome, camera permission and an HTTPS link. Practice mode still works here.</div><p class="note">Best experienced standing near a clear table.</p></div></section>
+  <div id="hud" class="hidden"><div class="topbar"><div class="pill">BALLS <span id="shots">5</span></div><div class="pill">TIME <span id="timer">60</span></div><div class="pill">OUT <span id="score">0</span>/3</div></div><div id="message">Move your phone slowly to find a table</div><div id="crosshair" class="hidden"></div><div id="powerWrap" class="hidden"><div id="power"></div></div><button id="place">PLACE ARENA</button><div id="sling" class="hidden"><div id="fork"></div><div class="band"></div><div class="band"></div><div id="ball">PULL</div><div id="pullHint">DRAG BACK • RELEASE TO FIRE</div></div></div>
   <section id="result" class="hidden"><div class="resultCard"><div class="emoji" id="resultEmoji">🎉</div><h2 id="resultTitle">YOU TOPPLED IT!</h2><p id="resultText"></p><button id="again" class="primary">PLAY AGAIN</button><button id="home" class="secondary">MAIN MENU</button></div></section>
 
   <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","cannon-es":"https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"}}</script>
@@ -33,18 +33,19 @@
     import * as CANNON from 'cannon-es';
 
     const $=id=>document.getElementById(id);
-    const ui={intro:$('intro'),hud:$('hud'),message:$('message'),place:$('place'),fire:$('fire'),power:$('power'),powerWrap:$('powerWrap'),crosshair:$('crosshair'),shots:$('shots'),score:$('score'),result:$('result'),resultTitle:$('resultTitle'),resultText:$('resultText'),resultEmoji:$('resultEmoji')};
+    const ui={intro:$('intro'),hud:$('hud'),message:$('message'),place:$('place'),sling:$('sling'),ball:$('ball'),power:$('power'),powerWrap:$('powerWrap'),crosshair:$('crosshair'),shots:$('shots'),timer:$('timer'),score:$('score'),result:$('result'),resultTitle:$('resultTitle'),resultText:$('resultText'),resultEmoji:$('resultEmoji')};
     let scene,camera,renderer,world,clock,arena=null,reticle=null,hitSource=null,localSpace=null;
-    let bodies=[],targets=[],projectiles=[],shots=5,knocked=0,placed=false,charging=false,chargeStart=0,mode='practice',ended=false;
+    let bodies=[],targets=[],projectiles=[],trajectory=[],shots=5,knocked=0,placed=false,charging=false,mode='practice',ended=false,pull={x:0,y:0,power:0},timeLeft=60,timerId=null,lastBuzz=0;
+    let level='classic';const levels={chill:{time:90,shots:6},classic:{time:60,shots:5},rush:{time:35,shots:4}};
     const fixedStep=1/60, arenaScale=.55;
 
+    document.querySelectorAll('.modeBtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.modeBtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');level=b.dataset.level;});
     $('startAR').onclick=()=>start('ar'); $('practice').onclick=()=>start('practice'); $('again').onclick=()=>location.reload(); $('home').onclick=()=>location.reload();
     ui.place.onclick=()=>{if(mode==='practice'||(reticle&&reticle.visible)) placeArena();};
-    ['pointerdown','touchstart'].forEach(e=>ui.fire.addEventListener(e,beginCharge,{passive:false}));
-    ['pointerup','pointercancel','touchend'].forEach(e=>ui.fire.addEventListener(e,endCharge,{passive:false}));
+    ui.ball.addEventListener('pointerdown',beginPull);addEventListener('pointermove',movePull,{passive:false});addEventListener('pointerup',endPull);addEventListener('pointercancel',endPull);
 
     async function start(selected){
-      mode=selected;
+      mode=selected;shots=levels[level].shots;timeLeft=levels[level].time;ui.shots.textContent=shots;ui.timer.textContent=timeLeft;
       if(selected==='ar' && !navigator.xr){$('noXR').style.display='block';return;}
       setup(); ui.intro.classList.add('hidden');ui.hud.classList.remove('hidden');
       if(selected==='ar'){
@@ -73,7 +74,7 @@
     function addStars(){if(mode==='ar')return;const geo=new THREE.BufferGeometry();const p=[];for(let i=0;i<120;i++)p.push((Math.random()-.5)*10,Math.random()*5,(Math.random()-.5)*8);geo.setAttribute('position',new THREE.Float32BufferAttribute(p,3));scene.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:.025})))}
 
     function placeArena(){
-      if(placed)return;placed=true;ui.place.classList.add('hidden');ui.fire.classList.remove('hidden');ui.crosshair.classList.remove('hidden');ui.powerWrap.classList.remove('hidden');ui.message.textContent='Aim at a Trouble Bean. Hold FIRE for power.';
+      if(placed)return;placed=true;ui.place.classList.add('hidden');ui.sling.classList.remove('hidden');ui.crosshair.classList.remove('hidden');ui.powerWrap.classList.remove('hidden');ui.message.textContent='Aim with your phone. Pull the ball back and release.';
       const pos=new THREE.Vector3(0,0,0),quat=new THREE.Quaternion();
       if(mode==='ar'){reticle.matrix.decompose(pos,quat,new THREE.Vector3());reticle.visible=false;}else{pos.set(0,0,0);}
       arena=new THREE.Group();arena.position.copy(pos);arena.quaternion.copy(quat);scene.add(arena);
@@ -84,7 +85,7 @@
         const size=i<4?new THREE.Vector3(.22,.28,.28):new THREE.Vector3(i===4?1.15:.62,.16,.3);
         addBodyBox(size,new THREE.Vector3(...p),1,i%2?0xffc857:0x57c7ff);
       });
-      addTarget(new THREE.Vector3(-.48,.89,0),0xff5d8f);addTarget(new THREE.Vector3(.48,.89,0),0xd9ff55);addTarget(new THREE.Vector3(0,1.12,0),0x9c7bff);
+      addTarget(new THREE.Vector3(-.48,.89,0),0xff5d8f);addTarget(new THREE.Vector3(.48,.89,0),0xd9ff55);addTarget(new THREE.Vector3(0,1.12,0),0x9c7bff);makeTrajectory();startTimer();
       setTimeout(()=>{if(!ended)ui.message.style.opacity='.25'},3500);
     }
 
@@ -99,13 +100,16 @@
       const body=new CANNON.Body({mass:.38,shape:new CANNON.Sphere(.115),position:new CANNON.Vec3(wp.x,wp.y,wp.z)});body.linearDamping=.15;body.angularDamping=.35;world.addBody(body);bodies.push({mesh:group,body});targets.push({mesh:group,body,startY:wp.y,out:false});
     }
 
-    function beginCharge(e){e.preventDefault();if(!placed||ended||shots<=0)return;charging=true;chargeStart=performance.now();ui.fire.textContent='POWER';}
-    function endCharge(e){e.preventDefault();if(!charging)return;charging=false;const power=Math.min(1,(performance.now()-chargeStart)/1300);shoot(.35+.65*power);ui.power.style.width='0';ui.fire.textContent='HOLD';}
-    function shoot(power){
+    function beginPull(e){e.preventDefault();if(!placed||ended||shots<=0)return;charging=true;ui.ball.setPointerCapture?.(e.pointerId);pull={x:0,y:0,power:0};lastBuzz=0;}
+    function movePull(e){if(!charging)return;e.preventDefault();const r=ui.sling.getBoundingClientRect(),ox=r.left+r.width/2,oy=r.top+30;pull.x=Math.max(-65,Math.min(65,e.clientX-ox));pull.y=Math.max(0,Math.min(105,e.clientY-oy));pull.power=Math.min(1,Math.hypot(pull.x,pull.y)/105);updateSling();updateTrajectory();const step=Math.floor(pull.power*5);if(step>lastBuzz){navigator.vibrate?.(12+step*4);lastBuzz=step;}}
+    function endPull(){if(!charging)return;charging=false;if(pull.power>.12){navigator.vibrate?.([20,15,35]);shoot(.3+.7*pull.power,pull.x/65);}pull={x:0,y:0,power:0};updateSling();hideTrajectory();}
+    function updateSling(){ui.ball.style.transform=`translate(calc(-50% + ${pull.x}px),${pull.y}px)`;ui.ball.textContent=pull.power>.15?Math.round(pull.power*100)+'%':'PULL';ui.power.style.width=(pull.power*100)+'%';const bands=document.querySelectorAll('.band'),bx=105+pull.x,by=51+pull.y;[[31,39],[179,39]].forEach((a,i)=>{const dx=bx-a[0],dy=by-a[1];bands[i].style.width=Math.hypot(dx,dy)+'px';bands[i].style.left=a[0]+'px';bands[i].style.top=a[1]+'px';bands[i].style.transform=`rotate(${Math.atan2(dy,dx)}rad)`;});}
+    function launchDirection(side=0){const d=new THREE.Vector3();camera.getWorldDirection(d);const q=new THREE.Quaternion();camera.getWorldQuaternion(q);const right=new THREE.Vector3(1,0,0).applyQuaternion(q);d.addScaledVector(right,-side*.16);d.y+=.07;return d.normalize()}
+    function shoot(power,side=0){
       if(shots<=0||ended)return;shots--;ui.shots.textContent=shots;
-      const camPos=new THREE.Vector3(),dir=new THREE.Vector3();camera.getWorldPosition(camPos);camera.getWorldDirection(dir);const spawn=camPos.clone().add(dir.clone().multiplyScalar(.18));
+      const camPos=new THREE.Vector3(),dir=launchDirection(side);camera.getWorldPosition(camPos);const spawn=camPos.clone().add(dir.clone().multiplyScalar(.18));
       const mesh=new THREE.Mesh(new THREE.SphereGeometry(.075,20,16),new THREE.MeshStandardMaterial({color:0xff6b49,emissive:0x481008,roughness:.3}));mesh.position.copy(spawn);mesh.castShadow=true;scene.add(mesh);
-      const body=new CANNON.Body({mass:.52,shape:new CANNON.Sphere(.075),position:new CANNON.Vec3(spawn.x,spawn.y,spawn.z)});body.velocity.set(dir.x*(2.5+power*5),dir.y*(2.5+power*5),dir.z*(2.5+power*5));body.linearDamping=.04;world.addBody(body);bodies.push({mesh,body});projectiles.push({mesh,body,born:performance.now()});
+      const body=new CANNON.Body({mass:.52,shape:new CANNON.Sphere(.075),position:new CANNON.Vec3(spawn.x,spawn.y,spawn.z)}),speed=3+power*5.5;body.velocity.set(dir.x*speed,dir.y*speed,dir.z*speed);body.linearDamping=.04;world.addBody(body);bodies.push({mesh,body});projectiles.push({mesh,body,born:performance.now()});
       ui.message.style.opacity='1';ui.message.textContent=shots?'Nice shot! Aim again.':'Last shot fired!';setTimeout(()=>{ui.message.style.opacity='.25'},1000);
       if(shots===0)setTimeout(checkEnd,3500);
     }
@@ -114,7 +118,7 @@
       const dt=Math.min(clock?.getDelta?.()||fixedStep,.033);if(!clock)clock=new THREE.Clock();
       if(mode==='ar'&&!placed&&frame&&hitSource){const hits=frame.getHitTestResults(hitSource);if(hits.length){const pose=hits[0].getPose(localSpace);reticle.visible=true;reticle.matrix.fromArray(pose.transform.matrix);ui.place.classList.remove('hidden');ui.message.textContent='Surface found — place your arena';}else{reticle.visible=false;ui.place.classList.add('hidden');}}
       if(placed){world.step(fixedStep,dt,3);for(const o of bodies){o.mesh.position.copy(o.body.position);o.mesh.quaternion.copy(o.body.quaternion)}checkTargets();}
-      if(charging){const p=Math.min(1,(performance.now()-chargeStart)/1300);ui.power.style.width=(p*100)+'%';}
+      if(charging)updateTrajectory();
       renderer.render(scene,camera);
     }
 
@@ -123,7 +127,11 @@
       targets.forEach(t=>{const far=t.body.position.y<floorY-.08||Math.hypot(t.body.position.x-arena.position.x,t.body.position.z-arena.position.z)>.92;if(far&&!t.out){t.out=true;knocked++;ui.score.textContent=knocked;ui.message.style.opacity='1';ui.message.textContent='TOPPLED! +100';setTimeout(()=>ui.message.style.opacity='.25',900);if(knocked===targets.length)setTimeout(()=>showResult(true),900);}});
     }
     function checkEnd(){if(knocked===targets.length)showResult(true);else showResult(false);}
-    function showResult(win,msg){if(ended)return;ended=true;ui.result.classList.remove('hidden');ui.resultEmoji.textContent=win?'🎉':'😵';ui.resultTitle.textContent=win?'YOU TOPPLED IT!':'SO CLOSE!';ui.resultText.textContent=msg||(win?`All 3 Trouble Beans are out with ${shots} shot${shots===1?'':'s'} left.`:`You knocked out ${knocked} of 3. Try a stronger shot or aim for the supports.`);}
+    function startTimer(){timerId=setInterval(()=>{if(ended)return;timeLeft--;ui.timer.textContent=timeLeft;if(timeLeft<=10){ui.timer.style.color='#ff5d8f';if(timeLeft<=3)navigator.vibrate?.(40)}if(timeLeft<=0)showResult(false,'Time is up! You knocked out '+knocked+' of 3.');},1000)}
+    function makeTrajectory(){const geo=new THREE.SphereGeometry(.018,10,8),mat=new THREE.MeshBasicMaterial({color:0xffffff});for(let i=0;i<18;i++){const dot=new THREE.Mesh(geo,mat);dot.visible=false;scene.add(dot);trajectory.push(dot)}}
+    function updateTrajectory(){if(!charging||pull.power<.08)return hideTrajectory();const start=new THREE.Vector3();camera.getWorldPosition(start);const v=launchDirection(pull.x/65).multiplyScalar(3+(.3+.7*pull.power)*5.5);trajectory.forEach((dot,i)=>{const t=(i+1)*.065;dot.position.copy(start).addScaledVector(v,t);dot.position.y+=-.5*9.82*t*t;dot.visible=true;dot.scale.setScalar(1-i/30);});}
+    function hideTrajectory(){trajectory.forEach(d=>d.visible=false)}
+    function showResult(win,msg){if(ended)return;ended=true;clearInterval(timerId);navigator.vibrate?.(win?[60,40,100]:[180]);ui.result.classList.remove('hidden');ui.resultEmoji.textContent=win?'🎉':'😵';ui.resultTitle.textContent=win?'YOU TOPPLED IT!':'SO CLOSE!';ui.resultText.textContent=msg||(win?`All 3 are out with ${timeLeft}s and ${shots} ball${shots===1?'':'s'} left.`:`You knocked out ${knocked} of 3. Try a stronger pull or aim for the supports.`);}
     function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
   </script>
 </body>
