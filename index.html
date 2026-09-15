@@ -1,764 +1,2807 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+/>
+
 <title>AR Jenga</title>
+
 <style>
-  :root{
-    --wood-dark:#3a2317;
-    --wood-mid:#8a5a34;
-    --amber:#e2a54a;
-    --cream:#f3ead9;
-    --danger:#c1502e;
-    --panel-bg: rgba(20, 13, 8, 0.62);
-    --panel-border: rgba(226, 165, 74, 0.35);
-  }
-  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  html,body{
-    margin:0; padding:0; width:100%; height:100%; overflow:hidden;
-    background:#0c0805;
-    font-family: -apple-system, "Inter", "Segoe UI", system-ui, sans-serif;
-    color:var(--cream);
-  }
-  #app-canvas{ position:fixed; inset:0; display:block; touch-action:none; }
 
-  #overlay{
-    position:fixed; inset:0;
-    pointer-events:auto;
-    touch-action:none;
-    z-index:10;
-  }
+:root{
+  --wood-dark:#3a2317;
+  --wood-mid:#8a5a34;
+  --amber:#e2a54a;
+  --cream:#f3ead9;
+  --danger:#c1502e;
+  --panel-bg:rgba(20,13,8,0.62);
+  --panel-border:rgba(226,165,74,0.35);
+}
 
-  /* ---------- shared panel look ---------- */
-  .panel{
-    background:var(--panel-bg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border:1px solid var(--panel-border);
-    border-radius:18px;
-  }
-  button{
-    font-family:inherit;
-    border:none;
-    cursor:pointer;
-    -webkit-appearance:none;
-  }
-  button:active{ transform: scale(0.97); }
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
 
-  /* ---------- start screen ---------- */
-  #start-screen{
-    position:absolute; inset:0;
-    display:flex; align-items:center; justify-content:center;
-    padding:24px;
-    background:
-      radial-gradient(120% 90% at 50% 0%, rgba(226,165,74,0.16), transparent 60%),
-      linear-gradient(180deg, #150d08 0%, #0c0805 60%);
-  }
-  #start-card{
-    max-width:420px; width:100%;
-    padding:36px 30px 28px;
-    text-align:left;
-  }
-  #start-card .eyebrow{
-    font-size:13px; letter-spacing:0.02em; color:var(--amber);
-    margin:0 0 6px;
-  }
-  #start-card h1{
-    font-size:38px; line-height:1.02; margin:0 0 14px;
-    font-weight:700; letter-spacing:-0.02em;
-    color:var(--cream);
-  }
-  #start-card p{
-    font-size:15px; line-height:1.5; color:rgba(243,234,217,0.75);
-    margin:0 0 24px;
-    max-width:38ch;
-  }
-  .stack-diagram{
-    display:flex; flex-direction:column-reverse; gap:3px; width:64px; margin-bottom:22px;
-  }
-  .stack-diagram .lvl{ display:flex; gap:3px; }
-  .stack-diagram .blk{ height:7px; flex:1; border-radius:2px; background:linear-gradient(180deg, var(--amber), var(--wood-mid)); }
-  .stack-diagram .lvl.odd{ flex-direction:column; height:22px; }
-  .stack-diagram .lvl.odd .blk{ height:auto; }
+html,body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#0c0805;
+  font-family:-apple-system,"Inter","Segoe UI",system-ui,sans-serif;
+  color:var(--cream);
+}
 
-  #primary-cta{
-    width:100%; padding:16px 20px; border-radius:14px;
-    background: linear-gradient(180deg, var(--amber), #c47f2e);
-    color:#1c1006; font-size:16px; font-weight:700;
-    margin-bottom:10px;
-  }
-  #secondary-cta{
-    width:100%; padding:14px 20px; border-radius:14px;
-    background: transparent; border:1px solid var(--panel-border);
-    color:var(--cream); font-size:14px; font-weight:600;
-  }
-  #support-note{
-    margin-top:16px; font-size:12.5px; color:rgba(243,234,217,0.55); line-height:1.5;
-  }
+#app-canvas{
+  position:fixed;
+  inset:0;
+  display:block;
+  touch-action:none;
+}
 
-  /* ---------- in-session HUD ---------- */
-  #hud{
-    position:absolute; top:0; left:0; right:0;
-    display:none;
-    padding: max(14px, env(safe-area-inset-top)) 14px 0;
-    justify-content:space-between; align-items:flex-start;
-    gap:10px;
-  }
-  #score-pill{
-    padding:10px 16px;
-    display:flex; align-items:baseline; gap:8px;
-  }
-  #score-pill .label{ font-size:11.5px; color:rgba(243,234,217,0.6); }
-  #score-pill .value{ font-size:22px; font-weight:700; color:var(--amber); font-variant-numeric: tabular-nums; }
-  #icon-btn-row{ display:flex; gap:8px; }
-  .icon-btn{
-    width:42px; height:42px; border-radius:12px;
-    display:flex; align-items:center; justify-content:center;
-    color:var(--cream); font-size:18px;
-  }
+#overlay{
+  position:fixed;
+  inset:0;
+  pointer-events:auto;
+  touch-action:none;
+  z-index:10;
+}
 
-  #hint-toast{
-    position:absolute; left:50%; bottom: max(28px, env(safe-area-inset-bottom));
-    transform:translateX(-50%);
-    padding:12px 18px; max-width:86vw;
-    font-size:13.5px; text-align:center; line-height:1.4;
-    display:none;
-    transition: opacity 0.4s ease;
-  }
+.panel{
+  background:var(--panel-bg);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--panel-border);
+  border-radius:18px;
+}
 
-  #reticle-hint{
-    position:absolute; left:50%; bottom: max(28px, env(safe-area-inset-bottom));
-    transform:translateX(-50%);
-    padding:12px 18px; max-width:86vw;
-    font-size:13.5px; text-align:center;
-    display:none;
-  }
+button{
+  font-family:inherit;
+  border:none;
+  cursor:pointer;
+  -webkit-appearance:none;
+}
 
-  /* ---------- modal ---------- */
-  #modal-layer{
-    position:absolute; inset:0; display:none;
-    align-items:center; justify-content:center; padding:24px;
-    background:rgba(8,5,3,0.55);
-  }
-  #modal-card{
-    max-width:340px; width:100%; padding:28px 24px; text-align:center;
-  }
-  #modal-title{ font-size:24px; font-weight:700; margin:0 0 8px; }
-  #modal-sub{ font-size:14px; color:rgba(243,234,217,0.75); margin:0 0 22px; }
-  #modal-score{ font-size:42px; font-weight:800; color:var(--amber); margin-bottom:22px; font-variant-numeric: tabular-nums;}
-  #modal-cta{
-    width:100%; padding:14px; border-radius:14px;
-    background: linear-gradient(180deg, var(--amber), #c47f2e);
-    color:#1c1006; font-weight:700; font-size:15px;
-  }
+button:active{
+  transform:scale(0.97);
+}
 
-  .hidden{ display:none !important; }
-  svg{ display:block; }
+/* START SCREEN */
+
+#start-screen{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+
+  background:
+  radial-gradient(
+    120% 90% at 50% 0%,
+    rgba(226,165,74,0.16),
+    transparent 60%
+  ),
+  linear-gradient(
+    180deg,
+    #150d08 0%,
+    #0c0805 60%
+  );
+}
+
+#start-card{
+  max-width:420px;
+  width:100%;
+  padding:36px 30px 28px;
+  text-align:left;
+}
+
+#start-card .eyebrow{
+  font-size:13px;
+  letter-spacing:0.02em;
+  color:var(--amber);
+  margin:0 0 6px;
+}
+
+#start-card h1{
+  font-size:38px;
+  line-height:1.02;
+  margin:0 0 14px;
+  font-weight:700;
+  letter-spacing:-0.02em;
+  color:var(--cream);
+}
+
+#start-card p{
+  font-size:15px;
+  line-height:1.5;
+  color:rgba(243,234,217,0.75);
+  margin:0 0 24px;
+  max-width:38ch;
+}
+
+.stack-diagram{
+  display:flex;
+  flex-direction:column-reverse;
+  gap:3px;
+  width:64px;
+  margin-bottom:22px;
+}
+
+.stack-diagram .lvl{
+  display:flex;
+  gap:3px;
+}
+
+.stack-diagram .blk{
+  height:7px;
+  flex:1;
+  border-radius:2px;
+  background:linear-gradient(
+    180deg,
+    var(--amber),
+    var(--wood-mid)
+  );
+}
+
+.stack-diagram .lvl.odd{
+  flex-direction:column;
+  height:22px;
+}
+
+.stack-diagram .lvl.odd .blk{
+  height:auto;
+}
+
+#primary-cta{
+  width:100%;
+  padding:16px 20px;
+  border-radius:14px;
+
+  background:linear-gradient(
+    180deg,
+    var(--amber),
+    #c47f2e
+  );
+
+  color:#1c1006;
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+#secondary-cta{
+  width:100%;
+  padding:14px 20px;
+  border-radius:14px;
+
+  background:transparent;
+
+  border:1px solid var(--panel-border);
+
+  color:var(--cream);
+  font-size:14px;
+  font-weight:600;
+}
+
+#support-note{
+  margin-top:16px;
+  font-size:12.5px;
+  color:rgba(243,234,217,0.55);
+  line-height:1.5;
+}
+
+/* HUD */
+
+#hud{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+
+  display:none;
+
+  padding:
+  max(14px,env(safe-area-inset-top))
+  14px
+  0;
+
+  justify-content:space-between;
+  align-items:flex-start;
+
+  gap:10px;
+}
+
+#score-pill{
+  padding:10px 16px;
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+}
+
+#score-pill .label{
+  font-size:11.5px;
+  color:rgba(243,234,217,0.6);
+}
+
+#score-pill .value{
+  font-size:22px;
+  font-weight:700;
+  color:var(--amber);
+  font-variant-numeric:tabular-nums;
+}
+
+#icon-btn-row{
+  display:flex;
+  gap:8px;
+}
+
+.icon-btn{
+  width:42px;
+  height:42px;
+
+  border-radius:12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--cream);
+  font-size:18px;
+}
+
+#hint-toast{
+  position:absolute;
+
+  left:50%;
+
+  bottom:max(
+    28px,
+    env(safe-area-inset-bottom)
+  );
+
+  transform:translateX(-50%);
+
+  padding:12px 18px;
+
+  max-width:86vw;
+
+  font-size:13.5px;
+
+  text-align:center;
+
+  line-height:1.4;
+
+  display:none;
+
+  transition:opacity 0.4s ease;
+}
+
+#reticle-hint{
+  position:absolute;
+
+  left:50%;
+
+  bottom:max(
+    28px,
+    env(safe-area-inset-bottom)
+  );
+
+  transform:translateX(-50%);
+
+  padding:12px 18px;
+
+  max-width:86vw;
+
+  font-size:13.5px;
+
+  text-align:center;
+
+  display:none;
+}
+
+/* MODAL */
+
+#modal-layer{
+  position:absolute;
+  inset:0;
+
+  display:none;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:24px;
+
+  background:rgba(8,5,3,0.55);
+}
+
+#modal-card{
+  max-width:340px;
+  width:100%;
+
+  padding:28px 24px;
+
+  text-align:center;
+}
+
+#modal-title{
+  font-size:24px;
+  font-weight:700;
+  margin:0 0 8px;
+}
+
+#modal-sub{
+  font-size:14px;
+  color:rgba(243,234,217,0.75);
+  margin:0 0 22px;
+}
+
+#modal-score{
+  font-size:42px;
+  font-weight:800;
+
+  color:var(--amber);
+
+  margin-bottom:22px;
+
+  font-variant-numeric:tabular-nums;
+}
+
+#modal-cta{
+  width:100%;
+
+  padding:14px;
+
+  border-radius:14px;
+
+  background:linear-gradient(
+    180deg,
+    var(--amber),
+    #c47f2e
+  );
+
+  color:#1c1006;
+
+  font-weight:700;
+
+  font-size:15px;
+}
+
+.hidden{
+  display:none !important;
+}
+
+svg{
+  display:block;
+}
+
 </style>
+
 </head>
+
 <body>
 
+
 <canvas id="app-canvas"></canvas>
+
 
 <div id="overlay">
 
   <!-- START -->
+
   <div id="start-screen">
-    <div id="start-card" class="panel">
-      <p class="eyebrow">WebXR &middot; augmented reality</p>
-      <h1>AR Jenga</h1>
-      <div class="stack-diagram" id="diagram"></div>
-      <p>Place a life-size, physics-driven Jenga tower on your table. Drag blocks free and rebuild the stack as high as you dare — pull too carelessly and it comes down.</p>
-      <button id="primary-cta">Start in AR</button>
-      <button id="secondary-cta">Preview on screen instead</button>
+
+    <div
+      id="start-card"
+      class="panel"
+    >
+
+      <p class="eyebrow">
+        WebXR · augmented reality
+      </p>
+
+      <h1>
+        AR Jenga
+      </h1>
+
+      <div
+        class="stack-diagram"
+        id="diagram"
+      ></div>
+
+      <p>
+        Place a life-size, physics-driven Jenga tower
+        on your table. Drag blocks free and rebuild
+        the stack as high as you dare — pull too
+        carelessly and it comes down.
+      </p>
+
+      <button id="primary-cta">
+        Start in AR
+      </button>
+
+      <button id="secondary-cta">
+        Preview on screen instead
+      </button>
+
       <p id="support-note"></p>
+
     </div>
+
   </div>
 
-  <!-- IN-GAME HUD -->
+
+  <!-- HUD -->
+
   <div id="hud">
-    <div id="score-pill" class="panel">
-      <span class="label">Blocks stacked</span>
-      <span class="value" id="score-value">0</span>
+
+    <div
+      id="score-pill"
+      class="panel"
+    >
+
+      <span class="label">
+        Blocks stacked
+      </span>
+
+      <span
+        class="value"
+        id="score-value"
+      >
+        0
+      </span>
+
     </div>
+
+
     <div id="icon-btn-row">
-      <button class="icon-btn panel" id="reset-btn" title="Reset tower">&#8635;</button>
-      <button class="icon-btn panel" id="exit-btn" title="Exit">&#10005;</button>
+
+      <button
+        class="icon-btn panel"
+        id="reset-btn"
+        title="Reset tower"
+      >
+        ↻
+      </button>
+
+      <button
+        class="icon-btn panel"
+        id="exit-btn"
+        title="Exit"
+      >
+        ✕
+      </button>
+
     </div>
+
   </div>
 
-  <div id="reticle-hint" class="panel">Move your device to find a flat surface, then tap to place the tower.</div>
-  <div id="hint-toast" class="panel">Tap and drag a block to slide it free, then place it on top of the tower.</div>
+
+  <div
+    id="reticle-hint"
+    class="panel"
+  >
+    Move your device to find a flat surface,
+    then tap to place the tower.
+  </div>
+
+
+  <div
+    id="hint-toast"
+    class="panel"
+  >
+    Tap and drag a block to slide it free,
+    then place it on top of the tower.
+  </div>
+
 
   <!-- GAME OVER -->
+
   <div id="modal-layer">
-    <div id="modal-card" class="panel">
-      <h2 id="modal-title">Tower collapsed</h2>
-      <p id="modal-sub">It happens to the best of us.</p>
-      <div id="modal-score">0</div>
-      <button id="modal-cta">Rebuild tower</button>
+
+    <div
+      id="modal-card"
+      class="panel"
+    >
+
+      <h2 id="modal-title">
+        Tower collapsed
+      </h2>
+
+      <p id="modal-sub">
+        It happens to the best of us.
+      </p>
+
+      <div id="modal-score">
+        0
+      </div>
+
+      <button id="modal-cta">
+        Rebuild tower
+      </button>
+
     </div>
+
   </div>
 
 </div>
 
+
+<!-- START SCREEN DECORATION -->
+
 <script>
-  // decorative mini stack diagram on the start screen
-  const diagram = document.getElementById('diagram');
-  for(let i=0;i<5;i++){
-    const lvl = document.createElement('div');
-    lvl.className = 'lvl' + (i%2===1 ? ' odd':'');
-    const count = i%2===1 ? 1 : 3;
-    for(let b=0;b<count;b++){
-      const blk = document.createElement('div');
-      blk.className='blk';
-      lvl.appendChild(blk);
-    }
-    diagram.appendChild(lvl);
+
+const diagram =
+  document.getElementById('diagram');
+
+for(let i=0;i<5;i++){
+
+  const lvl =
+    document.createElement('div');
+
+  lvl.className =
+    'lvl' +
+    (i%2===1 ? ' odd':'');
+
+  const count =
+    i%2===1 ? 1 : 3;
+
+  for(let b=0;b<count;b++){
+
+    const blk =
+      document.createElement('div');
+
+    blk.className='blk';
+
+    lvl.appendChild(blk);
   }
+
+  diagram.appendChild(lvl);
+}
+
 </script>
+
+
+<!-- IMPORTS -->
 
 <script type="importmap">
+
 {
   "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-    "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm"
+
+    "three":
+    "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+
+    "three/addons/":
+    "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+
+    "cannon-es":
+    "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm"
   }
 }
+
 </script>
+
 
 <script type="module">
-import * as THREE from 'three';
-import { ARButton } from 'three/addons/webxr/ARButton.js';
-import * as CANNON from 'cannon-es';
 
-/* ======================================================================
-   CONSTANTS — real-world Jenga block dimensions, in metres
-   ====================================================================== */
-const BLOCK_L = 0.075;   // long axis
-const BLOCK_W = 0.025;   // short axis (stacking pitch)
-const BLOCK_H = 0.015;   // height
+import * as THREE
+from 'three';
+
+import {
+  ARButton
+}
+from 'three/addons/webxr/ARButton.js';
+
+import * as CANNON
+from 'cannon-es';
+
+
+/* =====================================================
+   CONSTANTS
+===================================================== */
+
+const BLOCK_L = 0.075;
+
+const BLOCK_W = 0.025;
+
+const BLOCK_H = 0.015;
+
 const LEVELS = 18;
-const TOWER_HEIGHT = LEVELS * BLOCK_H;
-const WOOD_COLORS = [0xC89B6D, 0xB9854F, 0xA9713F, 0xCBA36F];
 
-/* ======================================================================
+const LAYER_GAP = 0.0003;
+
+const TOWER_HEIGHT =
+  LEVELS *
+  (BLOCK_H + LAYER_GAP);
+
+
+const WOOD_COLORS = [
+
+  0xC89B6D,
+
+  0xB9854F,
+
+  0xA9713F,
+
+  0xCBA36F
+
+];
+
+
+/* =====================================================
    DOM
-   ====================================================================== */
-const canvas = document.getElementById('app-canvas');
-const overlay = document.getElementById('overlay');
-const startScreen = document.getElementById('start-screen');
-const primaryCta = document.getElementById('primary-cta');
-const secondaryCta = document.getElementById('secondary-cta');
-const supportNote = document.getElementById('support-note');
-const hud = document.getElementById('hud');
-const scoreValue = document.getElementById('score-value');
-const resetBtn = document.getElementById('reset-btn');
-const exitBtn = document.getElementById('exit-btn');
-const reticleHint = document.getElementById('reticle-hint');
-const hintToast = document.getElementById('hint-toast');
-const modalLayer = document.getElementById('modal-layer');
-const modalTitle = document.getElementById('modal-title');
-const modalScore = document.getElementById('modal-score');
-const modalCta = document.getElementById('modal-cta');
+===================================================== */
 
-/* ======================================================================
+const canvas =
+  document.getElementById(
+    'app-canvas'
+  );
+
+const overlay =
+  document.getElementById(
+    'overlay'
+  );
+
+const startScreen =
+  document.getElementById(
+    'start-screen'
+  );
+
+const primaryCta =
+  document.getElementById(
+    'primary-cta'
+  );
+
+const secondaryCta =
+  document.getElementById(
+    'secondary-cta'
+  );
+
+const supportNote =
+  document.getElementById(
+    'support-note'
+  );
+
+const hud =
+  document.getElementById(
+    'hud'
+  );
+
+const scoreValue =
+  document.getElementById(
+    'score-value'
+  );
+
+const resetBtn =
+  document.getElementById(
+    'reset-btn'
+  );
+
+const exitBtn =
+  document.getElementById(
+    'exit-btn'
+  );
+
+const reticleHint =
+  document.getElementById(
+    'reticle-hint'
+  );
+
+const hintToast =
+  document.getElementById(
+    'hint-toast'
+  );
+
+const modalLayer =
+  document.getElementById(
+    'modal-layer'
+  );
+
+const modalTitle =
+  document.getElementById(
+    'modal-title'
+  );
+
+const modalScore =
+  document.getElementById(
+    'modal-score'
+  );
+
+const modalCta =
+  document.getElementById(
+    'modal-cta'
+  );
+
+
+/* =====================================================
    THREE SETUP
-   ====================================================================== */
-const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
+===================================================== */
+
+const renderer =
+  new THREE.WebGLRenderer({
+
+    canvas,
+
+    antialias:true,
+
+    alpha:true
+
+  });
+
+
+renderer.setPixelRatio(
+
+  Math.min(
+    window.devicePixelRatio,
+    2
+  )
+
+);
+
+
+renderer.setSize(
+
+  window.innerWidth,
+
+  window.innerHeight
+
+);
+
+
 renderer.xr.enabled = true;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-// Critical for AR: three.js clears the canvas to opaque black by default,
-// which hides the camera passthrough. Force a transparent clear so the
-// real-world camera feed shows through behind our 3D content.
-renderer.setClearColor(0x000000, 0);
+
+renderer.outputColorSpace =
+  THREE.SRGBColorSpace;
+
+
+/* transparent AR background */
+
+renderer.setClearColor(
+  0x000000,
+  0
+);
+
 renderer.setClearAlpha(0);
 
-const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.01, 20);
-camera.position.set(0, TOWER_HEIGHT*0.55 + 0.15, 0.5);
-camera.lookAt(0, TOWER_HEIGHT*0.4, 0);
+const scene =
+  new THREE.Scene();
 
-const hemi = new THREE.HemisphereLight(0xfff3df, 0x2a1c10, 1.1);
+
+const camera =
+  new THREE.PerspectiveCamera(
+
+    55,
+
+    window.innerWidth /
+    window.innerHeight,
+
+    0.01,
+
+    20
+
+  );
+
+
+camera.position.set(
+
+  0,
+
+  TOWER_HEIGHT * 0.55 + 0.15,
+
+  0.5
+
+);
+
+
+camera.lookAt(
+
+  0,
+
+  TOWER_HEIGHT * 0.4,
+
+  0
+
+);
+
+
+/* LIGHTS */
+
+const hemi =
+  new THREE.HemisphereLight(
+
+    0xfff3df,
+
+    0x2a1c10,
+
+    1.1
+
+  );
+
 scene.add(hemi);
-const dir = new THREE.DirectionalLight(0xffffff, 1.4);
-dir.position.set(0.6, 1.2, 0.8);
+
+
+const dir =
+  new THREE.DirectionalLight(
+
+    0xffffff,
+
+    1.4
+
+  );
+
+dir.position.set(
+  0.6,
+  1.2,
+  0.8
+);
+
 scene.add(dir);
-const fill = new THREE.DirectionalLight(0xbcd4ff, 0.35);
-fill.position.set(-0.8, 0.4, -0.6);
+
+
+const fill =
+  new THREE.DirectionalLight(
+
+    0xbcd4ff,
+
+    0.35
+
+  );
+
+fill.position.set(
+  -0.8,
+  0.4,
+  -0.6
+);
+
 scene.add(fill);
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
 
-/* Reticle for AR surface placement */
-const reticleGeo = new THREE.RingGeometry(0.06, 0.075, 32).rotateX(-Math.PI/2);
-const reticleMat = new THREE.MeshBasicMaterial({ color:0xe2a54a, transparent:true, opacity:0.9 });
-const reticle = new THREE.Mesh(reticleGeo, reticleMat);
+/* RESIZE */
+
+window.addEventListener(
+  'resize',
+  () => {
+
+    camera.aspect =
+      window.innerWidth /
+      window.innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+
+      window.innerWidth,
+
+      window.innerHeight
+
+    );
+
+  }
+);
+
+
+/* =====================================================
+   AR RETICLE
+===================================================== */
+
+const reticleGeo =
+  new THREE.RingGeometry(
+
+    0.06,
+
+    0.075,
+
+    32
+
+  ).rotateX(
+    -Math.PI/2
+  );
+
+
+const reticleMat =
+  new THREE.MeshBasicMaterial({
+
+    color:0xe2a54a,
+
+    transparent:true,
+
+    opacity:0.9
+
+  });
+
+
+const reticle =
+  new THREE.Mesh(
+
+    reticleGeo,
+
+    reticleMat
+
+  );
+
+
 reticle.matrixAutoUpdate = false;
+
 reticle.visible = false;
+
 scene.add(reticle);
 
-/* Soft placement disc shown in preview mode */
-const discGeo = new THREE.CircleGeometry(0.16, 48).rotateX(-Math.PI/2);
-const discMat = new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.18 });
-const disc = new THREE.Mesh(discGeo, discMat);
-disc.visible = false;
+
+/* Preview floor */
+
+const discGeo =
+  new THREE.CircleGeometry(
+    0.16,
+    48
+  ).rotateX(
+    -Math.PI/2
+  );
+
+
+const discMat =
+  new THREE.MeshBasicMaterial({
+
+    color:0x000000,
+
+    transparent:true,
+
+    opacity:0.18
+
+  });
+
+
+const disc =
+  new THREE.Mesh(
+    discGeo,
+    discMat
+  );
+
+disc.visible=false;
+
 scene.add(disc);
 
-/* Anchor group: everything spawns relative to this placed point */
-const anchor = new THREE.Group();
+
+/* tower anchor */
+
+const anchor =
+  new THREE.Group();
+
 scene.add(anchor);
 
-/* ======================================================================
+
+/* =====================================================
    PHYSICS
-   ====================================================================== */
-const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
-world.broadphase = new CANNON.SAPBroadphase(world);
-world.allowSleep = true;
-world.solver.iterations = 12;
+===================================================== */
 
-const groundMaterial = new CANNON.Material('ground');
-const blockMaterial = new CANNON.Material('block');
-world.addContactMaterial(new CANNON.ContactMaterial(groundMaterial, blockMaterial, { friction:0.75, restitution:0.02 }));
-world.addContactMaterial(new CANNON.ContactMaterial(blockMaterial, blockMaterial, { friction:0.62, restitution:0.02 }));
+const world =
+  new CANNON.World({
 
-let groundBody = null;
-const blocks = []; // { mesh, body }
+    gravity:
+    new CANNON.Vec3(
+      0,
+      -9.82,
+      0
+    )
 
-/* ======================================================================
+  });
+
+
+world.broadphase =
+  new CANNON.SAPBroadphase(
+    world
+  );
+
+
+world.allowSleep=true;
+
+
+/*
+Higher iterations help prevent
+stack instability.
+*/
+
+world.solver.iterations=25;
+
+world.solver.tolerance=0.001;
+
+
+const groundMaterial =
+  new CANNON.Material(
+    'ground'
+  );
+
+
+const blockMaterial =
+  new CANNON.Material(
+    'block'
+  );
+
+
+world.addContactMaterial(
+
+  new CANNON.ContactMaterial(
+
+    groundMaterial,
+
+    blockMaterial,
+
+    {
+
+      friction:0.8,
+
+      restitution:0
+
+    }
+
+  )
+
+);
+
+
+world.addContactMaterial(
+
+  new CANNON.ContactMaterial(
+
+    blockMaterial,
+
+    blockMaterial,
+
+    {
+
+      friction:0.7,
+
+      restitution:0
+
+    }
+
+  )
+
+);
+
+
+let groundBody=null;
+
+const blocks=[];
+
+
+/* =====================================================
    GAME STATE
-   ====================================================================== */
-let placed = false;
-let isARSession = false;
-let hitTestSource = null;
-let hitTestSourceRequested = false;
-let towerTopY = TOWER_HEIGHT;
-let score = 0;
-let gameOver = false;
-let settleGraceUntil = 0;
+===================================================== */
 
-/* Dragging state */
-let dragging = false;
-let dragBody = null;
-let dragPlane = new THREE.Plane();
-let dragTarget = new THREE.Vector3();
-const raycaster = new THREE.Raycaster();
+let placed=false;
 
-/* ======================================================================
-   BUILD / RESET TOWER
-   ====================================================================== */
+let isARSession=false;
+
+let hitTestSource=null;
+
+let hitTestSourceRequested=false;
+
+let towerTopY=TOWER_HEIGHT;
+
+let score=0;
+
+let gameOver=false;
+
+let settleGraceUntil=0;
+
+
+/* DRAGGING */
+
+let dragging=false;
+
+let dragBody=null;
+
+let dragPlane=
+  new THREE.Plane();
+
+let dragTarget=
+  new THREE.Vector3();
+
+const raycaster=
+  new THREE.Raycaster();
+
+
+/* =====================================================
+   CLEAR TOWER
+===================================================== */
+
 function clearTower(){
+
   for(const b of blocks){
-    scene.remove(b.mesh);
-    world.removeBody(b.body);
+
+    scene.remove(
+      b.mesh
+    );
+
+    world.removeBody(
+      b.body
+    );
+
   }
-  blocks.length = 0;
-  if(groundBody){ world.removeBody(groundBody); groundBody = null; }
+
+  blocks.length=0;
+
+
+  if(groundBody){
+
+    world.removeBody(
+      groundBody
+    );
+
+    groundBody=null;
+
+  }
+
 }
 
-function buildTowerAt(position, quaternion){
+
+/* =====================================================
+   BUILD TOWER
+===================================================== */
+
+function buildTowerAt(
+  position,
+  quaternion
+){
+
   clearTower();
-  anchor.position.copy(position);
-  anchor.quaternion.copy(quaternion);
+
+
+  anchor.position.copy(
+    position
+  );
+
+  anchor.quaternion.copy(
+    quaternion
+  );
+
   anchor.updateMatrixWorld(true);
 
-  // Static ground plane at the anchor, physics-only (invisible; the real
-  // surface or the preview disc provides the visual read).
-  // A horizontal plane's orientation is unaffected by yaw, so it only
-  // ever needs the fixed rotation that makes its normal point up.
-  groundBody = new CANNON.Body({ mass:0, material:groundMaterial });
-  groundBody.addShape(new CANNON.Plane());
-  groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2);
-  const gp = anchor.position;
-  groundBody.position.set(gp.x, gp.y, gp.z);
-  world.addBody(groundBody);
 
-  const geo = new THREE.BoxGeometry(BLOCK_L, BLOCK_H, BLOCK_W);
-  const halfExtents = new CANNON.Vec3(BLOCK_L/2, BLOCK_H/2, BLOCK_W/2);
+  /* ---------------------------
+     PHYSICS GROUND
+  --------------------------- */
 
-  for(let level=0; level<LEVELS; level++){
-    const rotated = level % 2 === 1;
-    const y = level*BLOCK_H + BLOCK_H/2;
-    for(let i=0;i<3;i++){
-      const offset = (i-1) * BLOCK_W; // -W, 0, +W
-      const localPos = rotated
-        ? new THREE.Vector3(offset, y, 0)
-        : new THREE.Vector3(0, y, offset);
-      const localQuat = new THREE.Quaternion().setFromAxisAngle(
-        new THREE.Vector3(0,1,0), rotated ? Math.PI/2 : 0
+  groundBody =
+    new CANNON.Body({
+
+      mass:0,
+
+      material:
+      groundMaterial
+
+    });
+
+
+  groundBody.addShape(
+
+    new CANNON.Plane()
+
+  );
+
+
+  groundBody.quaternion
+    .setFromAxisAngle(
+
+      new CANNON.Vec3(
+        1,
+        0,
+        0
+      ),
+
+      -Math.PI/2
+
+    );
+
+
+  groundBody.position.set(
+
+    anchor.position.x,
+
+    anchor.position.y,
+
+    anchor.position.z
+
+  );
+
+
+  world.addBody(
+    groundBody
+  );
+
+
+  /* ---------------------------
+     BLOCK GEOMETRY
+  --------------------------- */
+
+  const geo =
+    new THREE.BoxGeometry(
+
+      BLOCK_L,
+
+      BLOCK_H,
+
+      BLOCK_W
+
+    );
+
+
+  /*
+  Physics collider is very
+  slightly smaller than the
+  visible block.
+
+  This prevents Cannon from
+  interpreting perfectly touching
+  blocks as overlapping.
+  */
+
+  const COLLIDER_SHRINK =
+    0.985;
+
+
+  const halfExtents =
+    new CANNON.Vec3(
+
+      (BLOCK_L/2) *
+      COLLIDER_SHRINK,
+
+      (BLOCK_H/2) *
+      COLLIDER_SHRINK,
+
+      (BLOCK_W/2) *
+      COLLIDER_SHRINK
+
+    );
+
+
+  /* ---------------------------
+     CREATE 18 LEVELS
+  --------------------------- */
+
+  for(
+    let level=0;
+    level<LEVELS;
+    level++
+  ){
+
+    const rotated =
+      level % 2 === 1;
+
+
+    /*
+    tiny vertical gap between
+    levels prevents initial
+    collision instability
+    */
+
+    const y =
+
+      level *
+      (BLOCK_H + LAYER_GAP)
+
+      +
+
+      BLOCK_H/2;
+
+
+    for(
+      let i=0;
+      i<3;
+      i++
+    ){
+
+      const offset =
+        (i-1) *
+        BLOCK_W;
+
+
+      const localPos =
+        rotated
+
+        ?
+
+        new THREE.Vector3(
+          offset,
+          y,
+          0
+        )
+
+        :
+
+        new THREE.Vector3(
+          0,
+          y,
+          offset
+        );
+
+
+      const localQuat =
+        new THREE.Quaternion()
+        .setFromAxisAngle(
+
+          new THREE.Vector3(
+            0,
+            1,
+            0
+          ),
+
+          rotated
+          ?
+          Math.PI/2
+          :
+          0
+
+        );
+
+
+      const worldPos =
+        localPos
+        .clone()
+        .applyQuaternion(
+          anchor.quaternion
+        )
+        .add(
+          anchor.position
+        );
+
+
+      const worldQuat =
+        anchor.quaternion
+        .clone()
+        .multiply(
+          localQuat
+        );
+
+
+      /* VISUAL BLOCK */
+
+      const colorIdx =
+        (level+i)
+        %
+        WOOD_COLORS.length;
+
+
+      const mat =
+        new THREE.MeshStandardMaterial({
+
+          color:
+          WOOD_COLORS[
+            colorIdx
+          ],
+
+          roughness:0.72,
+
+          metalness:0.02
+
+        });
+
+
+      const mesh =
+        new THREE.Mesh(
+          geo,
+          mat
+        );
+
+
+      mesh.position.copy(
+        worldPos
       );
 
-      const worldPos = localPos.clone().applyQuaternion(anchor.quaternion).add(anchor.position);
-      const worldQuat = anchor.quaternion.clone().multiply(localQuat);
 
-      const colorIdx = (level + i) % WOOD_COLORS.length;
-      const mat = new THREE.MeshStandardMaterial({
-        color: WOOD_COLORS[colorIdx], roughness:0.72, metalness:0.02
-      });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.copy(worldPos);
-      mesh.quaternion.copy(worldQuat);
+      mesh.quaternion.copy(
+        worldQuat
+      );
+
+
       scene.add(mesh);
 
-      const body = new CANNON.Body({
-        mass: 0.028,
-        material: blockMaterial,
-        linearDamping: 0.35,
-        angularDamping: 0.5,
-        allowSleep: true,
-        sleepSpeedLimit: 0.06,
-        sleepTimeLimit: 0.4,
-      });
-      body.addShape(new CANNON.Box(halfExtents));
-      body.position.set(worldPos.x, worldPos.y, worldPos.z);
-      body.quaternion.set(worldQuat.x, worldQuat.y, worldQuat.z, worldQuat.w);
-      world.addBody(body);
 
-      blocks.push({ mesh, body, level });
+      /* PHYSICS BLOCK */
+
+      const body =
+        new CANNON.Body({
+
+          mass:0.028,
+
+          material:
+          blockMaterial,
+
+          linearDamping:
+          0.45,
+
+          angularDamping:
+          0.65,
+
+          allowSleep:true,
+
+          sleepSpeedLimit:
+          0.08,
+
+          sleepTimeLimit:
+          0.25
+
+        });
+
+
+      body.addShape(
+
+        new CANNON.Box(
+          halfExtents
+        )
+
+      );
+
+
+      body.position.set(
+
+        worldPos.x,
+
+        worldPos.y,
+
+        worldPos.z
+
+      );
+
+
+      body.quaternion.set(
+
+        worldQuat.x,
+
+        worldQuat.y,
+
+        worldQuat.z,
+
+        worldQuat.w
+
+      );
+
+
+      world.addBody(
+        body
+      );
+
+
+      /*
+      CRITICAL FIX:
+
+      The original version lets
+      gravity immediately solve
+      all 54 bodies.
+
+      Start them asleep instead.
+      */
+
+      body.sleep();
+
+
+      blocks.push({
+
+        mesh,
+
+        body,
+
+        level
+
+      });
+
     }
+
   }
 
-  towerTopY = anchor.position.y + TOWER_HEIGHT;
-  score = 0;
-  gameOver = false;
-  scoreValue.textContent = '0';
-  settleGraceUntil = performance.now() + 2200;
-  placed = true;
 
-  reticle.visible = false;
-  hud.style.display = 'flex';
-  reticleHint.style.display = 'none';
-  showHint('Tap and drag a block to slide it free, then place it on top of the tower.', 5200);
-}
+  towerTopY =
 
-/* ======================================================================
-   HINT TOAST
-   ====================================================================== */
-let hintTimer = null;
-function showHint(text, ms){
-  hintToast.textContent = text;
-  hintToast.style.display = 'block';
-  hintToast.style.opacity = '1';
-  clearTimeout(hintTimer);
-  hintTimer = setTimeout(() => {
-    hintToast.style.opacity = '0';
-    setTimeout(()=> hintToast.style.display='none', 400);
-  }, ms);
-}
+    anchor.position.y
 
-/* ======================================================================
-   INPUT — unified pointer handling for both AR (dom-overlay) and preview
-   ====================================================================== */
-function ndcFromEvent(e){
-  const rect = overlay.getBoundingClientRect();
-  return new THREE.Vector2(
-    ((e.clientX-rect.left)/rect.width)*2 - 1,
-    -((e.clientY-rect.top)/rect.height)*2 + 1
+    +
+
+    LEVELS *
+    (BLOCK_H + LAYER_GAP);
+
+
+  score=0;
+
+  gameOver=false;
+
+
+  scoreValue.textContent=
+    '0';
+
+
+  settleGraceUntil =
+    performance.now()
+    +
+    2500;
+
+
+  placed=true;
+
+
+  reticle.visible=false;
+
+
+  hud.style.display=
+    'flex';
+
+
+  reticleHint.style.display=
+    'none';
+
+
+  showHint(
+
+    'Tap and drag a block to slide it free, then place it on top of the tower.',
+
+    5200
+
   );
+
 }
+
+
+/* =====================================================
+   HINT
+===================================================== */
+
+let hintTimer=null;
+
+
+function showHint(
+  text,
+  ms
+){
+
+  hintToast.textContent=
+    text;
+
+  hintToast.style.display=
+    'block';
+
+  hintToast.style.opacity=
+    '1';
+
+
+  clearTimeout(
+    hintTimer
+  );
+
+
+  hintTimer =
+    setTimeout(
+      () => {
+
+        hintToast.style.opacity=
+          '0';
+
+        setTimeout(
+          () => {
+
+            hintToast.style.display=
+              'none';
+
+          },
+
+          400
+        );
+
+      },
+
+      ms
+    );
+
+}
+
+
+/* =====================================================
+   POINTER INPUT
+===================================================== */
+
+function ndcFromEvent(e){
+
+  const rect =
+    overlay.getBoundingClientRect();
+
+
+  return new THREE.Vector2(
+
+    (
+      (e.clientX-rect.left)
+      /
+      rect.width
+    ) * 2 - 1,
+
+    -(
+      (
+        e.clientY-rect.top
+      )
+      /
+      rect.height
+    ) * 2 + 1
+
+  );
+
+}
+
 
 function getActiveCamera(){
-  return isARSession ? renderer.xr.getCamera() : camera;
+
+  return isARSession
+
+  ?
+
+  renderer.xr.getCamera()
+
+  :
+
+  camera;
+
 }
 
-overlay.addEventListener('pointerdown', (e) => {
-  if(e.target.closest('button')) return; // let UI buttons behave normally
-  if(gameOver) return;
 
-  const ndc = ndcFromEvent(e);
+/* POINTER DOWN */
 
-  if(!placed){
-    if(isARSession){
-      if(reticle.visible){
-        const pos = new THREE.Vector3();
-        const quat = new THREE.Quaternion();
-        const scale = new THREE.Vector3();
-        reticle.matrix.decompose(pos, quat, scale);
-        // keep the tower upright regardless of surface tilt reported
-        const yaw = new THREE.Euler().setFromQuaternion(quat, 'YXZ').y;
-        const uprightQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), yaw);
-        buildTowerAt(pos, uprightQuat);
-      }
-    }
+overlay.addEventListener(
+
+  'pointerdown',
+
+  (e) => {
+
+    if(
+      e.target.closest(
+        'button'
+      )
+    )
     return;
-  }
 
-  // placed: try to grab a block
-  raycaster.setFromCamera(ndc, getActiveCamera());
-  const hits = raycaster.intersectObjects(blocks.map(b=>b.mesh));
-  if(hits.length){
-    const hit = hits[0];
-    const found = blocks.find(b=>b.mesh === hit.object);
-    if(found){
-      dragging = true;
-      dragBody = found.body;
-      dragBody.wakeUp();
-      const camDir = new THREE.Vector3();
-      getActiveCamera().getWorldDirection(camDir);
-      dragPlane.setFromNormalAndCoplanarPoint(camDir, hit.point);
-      dragTarget.copy(hit.point);
-      clearTimeout(hintTimer);
-      hintToast.style.display = 'none';
+
+    if(gameOver)
+      return;
+
+
+    const ndc =
+      ndcFromEvent(e);
+
+
+    /* PLACE TOWER */
+
+    if(!placed){
+
+      if(isARSession){
+
+        if(
+          reticle.visible
+        ){
+
+          const pos =
+            new THREE.Vector3();
+
+          const quat =
+            new THREE.Quaternion();
+
+          const scale =
+            new THREE.Vector3();
+
+
+          reticle.matrix.decompose(
+
+            pos,
+
+            quat,
+
+            scale
+
+          );
+
+
+          /*
+          Keep tower vertical even
+          if hit-test reports tiny
+          surface tilt.
+          */
+
+          const yaw =
+
+            new THREE.Euler()
+
+            .setFromQuaternion(
+              quat,
+              'YXZ'
+            ).y;
+
+
+          const uprightQuat =
+
+            new THREE.Quaternion()
+
+            .setFromAxisAngle(
+
+              new THREE.Vector3(
+                0,
+                1,
+                0
+              ),
+
+              yaw
+
+            );
+
+
+          buildTowerAt(
+
+            pos,
+
+            uprightQuat
+
+          );
+
+        }
+
+      }
+
+      return;
+
     }
-  }
-}, { passive:true });
 
-overlay.addEventListener('pointermove', (e) => {
-  if(!dragging || !dragBody) return;
-  const ndc = ndcFromEvent(e);
-  raycaster.setFromCamera(ndc, getActiveCamera());
-  const p = new THREE.Vector3();
-  if(raycaster.ray.intersectPlane(dragPlane, p)){
-    dragTarget.copy(p);
+
+    /* GRAB BLOCK */
+
+    raycaster.setFromCamera(
+
+      ndc,
+
+      getActiveCamera()
+
+    );
+
+
+    const hits =
+      raycaster.intersectObjects(
+
+        blocks.map(
+          b => b.mesh
+        )
+
+      );
+
+
+    if(hits.length){
+
+      const hit =
+        hits[0];
+
+
+      const found =
+        blocks.find(
+
+          b =>
+          b.mesh ===
+          hit.object
+
+        );
+
+
+      if(found){
+
+        dragging=true;
+
+        dragBody=
+          found.body;
+
+
+        /*
+        Wake the selected block.
+        */
+
+        dragBody.wakeUp();
+
+
+        /*
+        Wake nearby tower blocks
+        so the structure can react
+        naturally to the pull.
+        */
+
+        for(
+          const b
+          of blocks
+        ){
+
+          const dy =
+            Math.abs(
+              b.body.position.y
+              -
+              dragBody.position.y
+            );
+
+
+          if(
+            dy <
+            BLOCK_H * 3
+          ){
+
+            b.body.wakeUp();
+
+          }
+
+        }
+
+
+        const camDir =
+          new THREE.Vector3();
+
+
+        getActiveCamera()
+          .getWorldDirection(
+            camDir
+          );
+
+
+        dragPlane
+          .setFromNormalAndCoplanarPoint(
+
+            camDir,
+
+            hit.point
+
+          );
+
+
+        dragTarget.copy(
+          hit.point
+        );
+
+
+        clearTimeout(
+          hintTimer
+        );
+
+
+        hintToast.style.display=
+          'none';
+
+      }
+
+    }
+
+  },
+
+  {
+    passive:true
   }
-}, { passive:true });
+
+);
+
+
+/* POINTER MOVE */
+
+overlay.addEventListener(
+
+  'pointermove',
+
+  (e) => {
+
+    if(
+      !dragging ||
+      !dragBody
+    )
+    return;
+
+
+    const ndc =
+      ndcFromEvent(e);
+
+
+    raycaster.setFromCamera(
+
+      ndc,
+
+      getActiveCamera()
+
+    );
+
+
+    const p =
+      new THREE.Vector3();
+
+
+    if(
+      raycaster.ray
+      .intersectPlane(
+        dragPlane,
+        p
+      )
+    ){
+
+      dragTarget.copy(p);
+
+    }
+
+  },
+
+  {
+    passive:true
+  }
+
+);
+
+
+/* RELEASE */
 
 function releaseDrag(){
-  if(!dragging) return;
-  dragging = false;
-  const body = dragBody;
-  dragBody = null;
+
+  if(!dragging)
+    return;
+
+
+  dragging=false;
+
+
+  const body =
+    dragBody;
+
+
+  dragBody=null;
+
+
   if(body){
-    setTimeout(() => checkSettledPlacement(body), 1500);
-  }
-}
-overlay.addEventListener('pointerup', releaseDrag, { passive:true });
-overlay.addEventListener('pointercancel', releaseDrag, { passive:true });
 
-function checkSettledPlacement(body){
-  if(gameOver) return;
-  const speed = body.velocity.length() + body.angularVelocity.length();
-  if(speed > 0.08) return; // still moving, skip this check silently
-  const heightAboveBase = body.position.y - anchor.position.y;
-  if(heightAboveBase > towerTopY - anchor.position.y - BLOCK_H*0.6){
-    towerTopY = Math.max(towerTopY, body.position.y + BLOCK_H/2);
-    score += 1;
-    scoreValue.textContent = String(score);
-    showHint('Nice placement — tower holding steady.', 1800);
+    setTimeout(
+
+      () =>
+        checkSettledPlacement(
+          body
+        ),
+
+      1500
+
+    );
+
   }
+
 }
 
-/* ======================================================================
-   BUTTONS
-   ====================================================================== */
-resetBtn.addEventListener('click', () => {
-  if(isARSession){
-    clearTower();
-    placed = false;
-    reticleHint.style.display = 'block';
-    hud.style.display = 'none';
-    modalLayer.style.display = 'none';
-  } else {
-    placePreviewTower();
-    modalLayer.style.display = 'none';
-  }
-});
 
-modalCta.addEventListener('click', () => {
-  modalLayer.style.display = 'none';
-  if(isARSession){
-    clearTower();
-    placed = false;
-    reticleHint.style.display = 'block';
-    hud.style.display = 'none';
-  } else {
-    placePreviewTower();
-  }
-});
+overlay.addEventListener(
 
-exitBtn.addEventListener('click', () => {
-  if(isARSession && renderer.xr.getSession()){
-    renderer.xr.getSession().end();
-  } else {
-    hud.style.display = 'none';
-    modalLayer.style.display = 'none';
-    startScreen.style.display = 'flex';
-    placed = false;
-    disc.visible = false;
-    clearTower();
-  }
-});
+  'pointerup',
 
-/* ======================================================================
-   ENTRY FLOW
-   ====================================================================== */
-let arButtonEl = null;
+  releaseDrag,
+
+  {
+    passive:true
+  }
+
+);
+
+
+overlay.addEventListener(
+
+  'pointercancel',
+
+  releaseDrag,
+
+  {
+    passive:true
+  }
+
+);
+
+
+/* =====================================================
+   SCORE
+===================================================== */
+
+function checkSettledPlacement(
+  body
+){
+
+  if(gameOver)
+    return;
+
+
+  const speed =
+
+    body.velocity.length()
+
+    +
+
+    body.angularVelocity.length();
+
+
+  if(
+    speed > 0.08
+  )
+    return;
+
+
+  const heightAboveBase =
+
+    body.position.y
+
+    -
+
+    anchor.position.y;
+
+
+  if(
+
+    heightAboveBase
+
+    >
+
+    towerTopY
+    -
+    anchor.position.y
+    -
+    BLOCK_H * 0.6
+
+  ){
+
+    towerTopY =
+      Math.max(
+
+        towerTopY,
+
+        body.position.y
+        +
+        BLOCK_H/2
+
+      );
+
+
+    score++;
+
+
+    scoreValue.textContent =
+      String(score);
+
+
+    showHint(
+
+      'Nice placement — tower holding steady.',
+
+      1800
+
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+resetBtn.addEventListener(
+
+  'click',
+
+  () => {
+
+    if(isARSession){
+
+      clearTower();
+
+      placed=false;
+
+      reticleHint.style.display=
+        'block';
+
+      hud.style.display=
+        'none';
+
+      modalLayer.style.display=
+        'none';
+
+    }
+
+    else{
+
+      placePreviewTower();
+
+      modalLayer.style.display=
+        'none';
+
+    }
+
+  }
+
+);
+
+
+/* REBUILD */
+
+modalCta.addEventListener(
+
+  'click',
+
+  () => {
+
+    modalLayer.style.display=
+      'none';
+
+
+    if(isARSession){
+
+      clearTower();
+
+      placed=false;
+
+      reticleHint.style.display=
+        'block';
+
+      hud.style.display=
+        'none';
+
+    }
+
+    else{
+
+      placePreviewTower();
+
+    }
+
+  }
+
+);
+
+
+/* EXIT */
+
+exitBtn.addEventListener(
+
+  'click',
+
+  () => {
+
+    if(
+      isARSession &&
+      renderer.xr.getSession()
+    ){
+
+      renderer.xr
+        .getSession()
+        .end();
+
+    }
+
+    else{
+
+      hud.style.display=
+        'none';
+
+      modalLayer.style.display=
+        'none';
+
+      startScreen.style.display=
+        'flex';
+
+      placed=false;
+
+      disc.visible=false;
+
+      clearTower();
+
+    }
+
+  }
+
+);
+
+
+/* =====================================================
+   ENTRY
+===================================================== */
+
+let arButtonEl=null;
+
 
 async function init(){
-  let supported = false;
-  if(navigator.xr && navigator.xr.isSessionSupported){
-    try{ supported = await navigator.xr.isSessionSupported('immersive-ar'); }catch(_){ supported = false; }
+
+  let supported=false;
+
+
+  if(
+    navigator.xr &&
+    navigator.xr.isSessionSupported
+  ){
+
+    try{
+
+      supported =
+        await navigator.xr
+        .isSessionSupported(
+          'immersive-ar'
+        );
+
+    }
+
+    catch(_){
+
+      supported=false;
+
+    }
+
   }
+
 
   if(supported){
-    arButtonEl = ARButton.createButton(renderer, {
-      requiredFeatures: ['hit-test'],
-      optionalFeatures: ['dom-overlay'],
-      domOverlay: { root: overlay }
-    });
-    arButtonEl.style.display = 'none';
-    document.body.appendChild(arButtonEl);
-    supportNote.textContent = 'Uses your camera to place the tower in your real space.';
-  } else {
-    primaryCta.textContent = 'Preview on screen';
-    supportNote.textContent = 'WebXR AR isn\u2019t available on this browser or device. Try Chrome on an ARCore-compatible Android phone for the full AR experience — showing an on-screen preview instead.';
+
+    arButtonEl =
+      ARButton.createButton(
+
+        renderer,
+
+        {
+
+          requiredFeatures:[
+            'hit-test'
+          ],
+
+          optionalFeatures:[
+            'dom-overlay'
+          ],
+
+          domOverlay:{
+            root:overlay
+          }
+
+        }
+
+      );
+
+
+    arButtonEl.style.display=
+      'none';
+
+
+    document.body.appendChild(
+      arButtonEl
+    );
+
+
+    supportNote.textContent =
+      'Uses your camera to place the tower in your real space.';
+
   }
 
-  primaryCta.addEventListener('click', () => {
-    startScreen.style.display = 'none';
-    if(supported && arButtonEl){
-      arButtonEl.click();
-    } else {
-      enterPreview();
+  else{
+
+    primaryCta.textContent =
+      'Preview on screen';
+
+
+    supportNote.textContent =
+      'WebXR AR isn’t available on this browser or device. Try Chrome on an ARCore-compatible Android phone for the full AR experience — showing an on-screen preview instead.';
+
+  }
+
+
+  primaryCta.addEventListener(
+
+    'click',
+
+    () => {
+
+      startScreen.style.display=
+        'none';
+
+
+      if(
+        supported &&
+        arButtonEl
+      ){
+
+        arButtonEl.click();
+
+      }
+
+      else{
+
+        enterPreview();
+
+      }
+
     }
-  });
 
-  secondaryCta.addEventListener('click', () => {
-    startScreen.style.display = 'none';
-    enterPreview();
-  });
+  );
 
-  renderer.xr.addEventListener('sessionstart', onARSessionStart);
-  renderer.xr.addEventListener('sessionend', onARSessionEnd);
 
-  renderer.setAnimationLoop(render);
+  secondaryCta.addEventListener(
+
+    'click',
+
+    () => {
+
+      startScreen.style.display=
+        'none';
+
+      enterPreview();
+
+    }
+
+  );
+
+
+  renderer.xr.addEventListener(
+
+    'sessionstart',
+
+    onARSessionStart
+
+  );
+
+
+  renderer.xr.addEventListener(
+
+    'sessionend',
+
+    onARSessionEnd
+
+  );
+
+
+  renderer.setAnimationLoop(
+    render
+  );
+
 }
+
+
+/* =====================================================
+   PREVIEW
+===================================================== */
 
 function enterPreview(){
-  isARSession = false;
-  disc.visible = true;
-  hud.style.display = 'none';
-  reticleHint.style.display = 'none';
+
+  isARSession=false;
+
+  disc.visible=true;
+
+  hud.style.display='none';
+
+  reticleHint.style.display='none';
+
   placePreviewTower();
+
 }
+
 
 function placePreviewTower(){
-  const pos = new THREE.Vector3(0,0,0);
-  const quat = new THREE.Quaternion();
-  buildTowerAt(pos, quat);
-  disc.position.set(0,0.0005,0);
-  hud.style.display = 'flex';
+
+  const pos =
+    new THREE.Vector3(
+      0,
+      0,
+      0
+    );
+
+
+  const quat =
+    new THREE.Quaternion();
+
+
+  buildTowerAt(
+    pos,
+    quat
+  );
+
+
+  disc.position.set(
+    0,
+    0.0005,
+    0
+  );
+
+
+  hud.style.display=
+    'flex';
+
 }
+
+
+/* =====================================================
+   AR SESSION
+===================================================== */
 
 async function onARSessionStart(){
-  isARSession = true;
-  disc.visible = false;
-  placed = false;
-  hud.style.display = 'none';
-  reticleHint.style.display = 'block';
-  modalLayer.style.display = 'none';
 
-  const session = renderer.xr.getSession();
-  const refSpace = await session.requestReferenceSpace('viewer');
-  hitTestSource = await session.requestHitTestSource({ space: refSpace });
-  hitTestSourceRequested = true;
+  isARSession=true;
+
+  disc.visible=false;
+
+  placed=false;
+
+  hud.style.display='none';
+
+  reticleHint.style.display=
+    'block';
+
+  modalLayer.style.display=
+    'none';
+
+
+  const session =
+    renderer.xr.getSession();
+
+
+  const refSpace =
+    await session
+    .requestReferenceSpace(
+      'viewer'
+    );
+
+
+  hitTestSource =
+    await session
+    .requestHitTestSource({
+
+      space:refSpace
+
+    });
+
+
+  hitTestSourceRequested=true;
+
 }
+
 
 function onARSessionEnd(){
-  isARSession = false;
-  hitTestSource = null;
-  hitTestSourceRequested = false;
-  reticle.visible = false;
-  hud.style.display = 'none';
-  reticleHint.style.display = 'none';
-  modalLayer.style.display = 'none';
+
+  isARSession=false;
+
+  hitTestSource=null;
+
+  hitTestSourceRequested=false;
+
+  reticle.visible=false;
+
+  hud.style.display='none';
+
+  reticleHint.style.display=
+    'none';
+
+  modalLayer.style.display=
+    'none';
+
   clearTower();
-  placed = false;
-  startScreen.style.display = 'flex';
+
+  placed=false;
+
+  startScreen.style.display=
+    'flex';
+
 }
 
-/* ======================================================================
+
+/* =====================================================
    COLLAPSE DETECTION
-   ====================================================================== */
-const UP = new THREE.Vector3(0,1,0);
+===================================================== */
+
+const UP =
+  new THREE.Vector3(
+    0,
+    1,
+    0
+  );
+
+
 function checkCollapse(){
-  if(!placed || gameOver) return;
-  if(performance.now() < settleGraceUntil) return;
-  let tipped = 0;
-  const localUp = new THREE.Vector3();
-  for(const b of blocks){
-    localUp.set(0,1,0).applyQuaternion(b.mesh.quaternion);
-    if(localUp.dot(UP) < 0.55) tipped++;
+
+  if(
+    !placed ||
+    gameOver
+  )
+    return;
+
+
+  if(
+    performance.now()
+    <
+    settleGraceUntil
+  )
+    return;
+
+
+  let tipped=0;
+
+
+  const localUp =
+    new THREE.Vector3();
+
+
+  for(
+    const b
+    of blocks
+  ){
+
+    localUp
+      .set(
+        0,
+        1,
+        0
+      )
+      .applyQuaternion(
+        b.mesh.quaternion
+      );
+
+
+    if(
+      localUp.dot(UP)
+      <
+      0.55
+    ){
+
+      tipped++;
+
+    }
+
   }
-  if(tipped >= 6){
+
+
+  if(
+    tipped >= 6
+  ){
+
     triggerGameOver();
+
   }
+
 }
+
 
 function triggerGameOver(){
-  gameOver = true;
-  dragging = false;
-  dragBody = null;
-  modalTitle.textContent = 'Tower collapsed';
-  modalScore.textContent = String(score);
-  modalLayer.style.display = 'flex';
+
+  gameOver=true;
+
+  dragging=false;
+
+  dragBody=null;
+
+
+  modalTitle.textContent =
+    'Tower collapsed';
+
+
+  modalScore.textContent =
+    String(score);
+
+
+  modalLayer.style.display =
+    'flex';
+
 }
 
-/* ======================================================================
-   RENDER LOOP
-   ====================================================================== */
-const clock = new THREE.Clock();
-let collapseCheckAcc = 0;
 
-function render(timestamp, frame){
-  const dt = Math.min(clock.getDelta(), 1/30);
+/* =====================================================
+   RENDER
+===================================================== */
 
-  // AR hit-test for placement reticle
-  if(isARSession && frame && hitTestSourceRequested && hitTestSource && !placed){
-    const refSpace = renderer.xr.getReferenceSpace();
-    const results = frame.getHitTestResults(hitTestSource);
+const clock =
+  new THREE.Clock();
+
+
+let collapseCheckAcc=0;
+
+
+function render(
+  timestamp,
+  frame
+){
+
+  const dt =
+    Math.min(
+
+      clock.getDelta(),
+
+      1/30
+
+    );
+
+
+  /* -------------------------
+     AR HIT TEST
+  ------------------------- */
+
+  if(
+
+    isARSession &&
+
+    frame &&
+
+    hitTestSourceRequested &&
+
+    hitTestSource &&
+
+    !placed
+
+  ){
+
+    const refSpace =
+      renderer.xr
+      .getReferenceSpace();
+
+
+    const results =
+      frame.getHitTestResults(
+        hitTestSource
+      );
+
+
     if(results.length){
-      const pose = results[0].getPose(refSpace);
-      reticle.visible = true;
-      reticle.matrix.fromArray(pose.transform.matrix);
-    } else {
-      reticle.visible = false;
+
+      const pose =
+        results[0]
+        .getPose(
+          refSpace
+        );
+
+
+      reticle.visible=true;
+
+
+      reticle.matrix.fromArray(
+
+        pose.transform.matrix
+
+      );
+
     }
+
+    else{
+
+      reticle.visible=false;
+
+    }
+
   }
+
+
+  /* -------------------------
+     PHYSICS
+  ------------------------- */
 
   if(placed){
-    // drag spring
-    if(dragging && dragBody){
-      const cur = dragBody.position;
-      const vx = (dragTarget.x - cur.x) * 9;
-      const vy = (dragTarget.y - cur.y) * 9;
-      const vz = (dragTarget.z - cur.z) * 9;
-      const maxV = 1.6;
+
+    if(
+      dragging &&
+      dragBody
+    ){
+
+      const cur =
+        dragBody.position;
+
+
+      const vx =
+        (
+          dragTarget.x -
+          cur.x
+        ) * 9;
+
+
+      const vy =
+        (
+          dragTarget.y -
+          cur.y
+        ) * 9;
+
+
+      const vz =
+        (
+          dragTarget.z -
+          cur.z
+        ) * 9;
+
+
+      const maxV=1.6;
+
+
       dragBody.velocity.set(
-        THREE.MathUtils.clamp(vx, -maxV, maxV),
-        THREE.MathUtils.clamp(vy, -maxV, maxV),
-        THREE.MathUtils.clamp(vz, -maxV, maxV)
+
+        THREE.MathUtils.clamp(
+          vx,
+          -maxV,
+          maxV
+        ),
+
+        THREE.MathUtils.clamp(
+          vy,
+          -maxV,
+          maxV
+        ),
+
+        THREE.MathUtils.clamp(
+          vz,
+          -maxV,
+          maxV
+        )
+
       );
-      dragBody.angularVelocity.scale(0.8, dragBody.angularVelocity);
+
+
+      dragBody.angularVelocity.scale(
+
+        0.8,
+
+        dragBody.angularVelocity
+
+      );
+
     }
 
-    world.step(1/60, dt, 5);
 
-    for(const b of blocks){
-      b.mesh.position.copy(b.body.position);
-      b.mesh.quaternion.copy(b.body.quaternion);
+    world.step(
+      1/60,
+      dt,
+      5
+    );
+
+
+    for(
+      const b
+      of blocks
+    ){
+
+      b.mesh.position.copy(
+        b.body.position
+      );
+
+
+      b.mesh.quaternion.copy(
+        b.body.quaternion
+      );
+
     }
 
-    collapseCheckAcc += dt;
-    if(collapseCheckAcc > 0.5){
-      collapseCheckAcc = 0;
+
+    collapseCheckAcc +=
+      dt;
+
+
+    if(
+      collapseCheckAcc
+      >
+      0.5
+    ){
+
+      collapseCheckAcc=0;
+
       checkCollapse();
+
     }
+
   }
 
-  renderer.render(scene, camera);
+
+  renderer.render(
+    scene,
+    camera
+  );
+
 }
 
+
+/* =====================================================
+   START
+===================================================== */
+
 init();
+
 </script>
+
 </body>
+
 </html>
