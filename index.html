@@ -76,7 +76,7 @@ button{
     <p>Place the tower on a real table or floor, then take turns removing a block and placing it on top.</p>
     <button id="enterAR" class="primary">Enter AR</button>
     <button id="desktopBtn" class="secondary">Play 3D Preview</button>
-    <p id="support" class="support">For AR, use an HTTPS WebXR-capable browser.</p>
+    <p id="support" class="support">If Enter AR does nothing, make sure this page is HTTPS and your browser supports WebXR AR.</p>
   </div>
 </div>
 
@@ -110,12 +110,7 @@ button{
 
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.178.0/build/three.module.js';
-import { ARButton } from 'https://cdn.jsdelivr.net/npm/three@0.178.0/examples/jsm/webxr/ARButton.js';
 import RAPIER from 'https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.15.2/+esm';
-
-import * as THREE from 'three';
-import RAPIER from '@dimforge/rapier3d-compat';
-import { ARButton } from 'three/addons/webxr/ARButton.js';
 
 await RAPIER.init();
 
@@ -409,33 +404,58 @@ function setupDesktop(){
 }
 
 async function enterAR(){
-  if(!navigator.xr){toast('WebXR AR is not supported in this browser.');return;}
-  const supported=await navigator.xr.isSessionSupported('immersive-ar').catch(()=>false);
-  if(!supported){toast('Immersive AR is not supported on this device/browser.');return;}
+  if(!window.isSecureContext){
+    toast('AR needs HTTPS. Open this GitHub Pages HTTPS address.');
+    return;
+  }
+  if(!navigator.xr){
+    toast('WebXR is not available in this browser.');
+    return;
+  }
 
-  const button=ARButton.createButton(renderer,{
-    requiredFeatures:['hit-test'],
-    optionalFeatures:['dom-overlay','local-floor','light-estimation'],
-    domOverlay:{root:document.body}
-  });
-  button.style.display='none';
-  document.body.appendChild(button);
-  button.click();
+  let supported=false;
+  try {
+    supported=await navigator.xr.isSessionSupported('immersive-ar');
+  } catch(e) {
+    console.error(e);
+  }
+  if(!supported){
+    toast('Immersive AR is not supported on this device/browser.');
+    return;
+  }
 
-  renderer.xr.addEventListener('sessionstart',()=>{
-    arSession=renderer.xr.getSession();
+  try {
+    const session=await navigator.xr.requestSession('immersive-ar',{
+      requiredFeatures:['hit-test'],
+      optionalFeatures:['local-floor','dom-overlay','light-estimation'],
+      domOverlay:{root:document.body}
+    });
+
+    arSession=session;
+    await renderer.xr.setSession(session);
+
     placementMode=true;
+    gameStarted=false;
     setHidden(ui.start,true);
     setHidden(ui.placement,false);
     setHidden(ui.hud,true);
     buildTower();
     createReticle();
-  });
-  renderer.xr.addEventListener('sessionend',()=>{
-    arSession=null; placementMode=false; hitTestSource=null;
-    setHidden(ui.placement,true);
-    if(!gameStarted) setHidden(ui.start,false);
-  });
+
+    session.addEventListener('end',()=>{
+      arSession=null;
+      placementMode=false;
+      hitTestSource=null;
+      hitTestSourceRequested=false;
+      if(!gameStarted){
+        setHidden(ui.placement,true);
+        setHidden(ui.start,false);
+      }
+    });
+  } catch(e) {
+    console.error('AR session failed:',e);
+    toast('Could not start AR. Check camera/AR permission.');
+  }
 }
 
 function createReticle(){
