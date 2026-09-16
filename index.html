@@ -78,8 +78,14 @@
         weaponRig.add(mesh(new THREE.BoxGeometry(.04,.04,.68),mat(0x252a27,.4,.65),[0,.05,-.23]));
       }
     }
-    function createWorld(){
-      world=new THREE.Group(); scene.add(world);
+    function createWorld(anchorMatrix=null){
+      world=new THREE.Group();
+      if(anchorMatrix){
+        anchorMatrix.decompose(world.position,world.quaternion,world.scale);
+      }else{
+        world.position.set(0,0,-2.2);
+      }
+      scene.add(world);
       const ground=mesh(new THREE.CircleGeometry(8,48),mat(0x18291a),[0,0,0],[-Math.PI/2,0,0]); world.add(ground);
       const road=mesh(new THREE.PlaneGeometry(4.2,13),mat(0x242a24),[0,.012,-1],[-Math.PI/2,0,0]);world.add(road);
       for(let z=-6;z<5;z+=1.5) world.add(mesh(new THREE.BoxGeometry(.08,.025,.66),mat(0x99a77d),[0,.03,z]));
@@ -93,7 +99,7 @@
       for(let i=0;i<18;i++){const ang=Math.random()*Math.PI*2,rad=2+Math.random()*5.5; world.add(mesh(new THREE.DodecahedronGeometry(.12+Math.random()*.24,0),mat(0x303b2d),[Math.cos(ang)*rad,.1,Math.sin(ang)*rad],[Math.random(),Math.random(),0]));}
       for(let i=0;i<5;i++){const ang=Math.random()*Math.PI*2,rad=2.2+Math.random()*4;const barrel=new THREE.Group();barrel.position.set(Math.cos(ang)*rad,0,Math.sin(ang)*rad);barrel.add(mesh(new THREE.CylinderGeometry(.2,.2,.58,14),mat(0x355923,.6,.45),[0,.29,0]));barrel.add(mesh(new THREE.TorusGeometry(.202,.025,6,14),mat(0x182419),[0,.15,0],[Math.PI/2,0,0]));world.add(barrel)}
       for(let i=0;i<9;i++){const dead=mesh(new THREE.CylinderGeometry(.035,.07,.8+Math.random()*.7,6),mat(0x25331f),[(Math.random()-.5)*11,.45,(Math.random()-.5)*11]);dead.rotation.z=(Math.random()-.5)*.3;world.add(dead)}
-      world.position.set(0,0,-2.2); showMessage('AREA INFECTED','WAVE 01'); setTimeout(startWave,1200);
+      showMessage('AREA INFECTED','WAVE 01'); setTimeout(startWave,1200);
     }
     function makeZombie(){
       const z=new THREE.Group(), skin=mat(0x799657), cloth=mat(Math.random()>.5?0x26372b:0x343a30);
@@ -150,15 +156,54 @@
       if(supported){
         isAR=true;scene.background=null;scene.fog=null;
         const btn=ARButton.createButton(renderer,{requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay','anchors'],domOverlay:{root:document.body}});btn.style.display='none';document.body.append(btn);btn.click();
-        renderer.xr.addEventListener('sessionstart',async()=>{started=true;$('#start').style.display='none';$('#place').style.display='block';const session=renderer.xr.getSession();viewerSpace=await session.requestReferenceSpace('viewer');hitSource=await session.requestHitTestSource({space:viewerSpace});});
+        renderer.xr.addEventListener('sessionstart',async()=>{
+          started=true;$('#start').style.display='none';
+          const placeBtn=$('#place');placeBtn.style.display='block';placeBtn.textContent='MOVE PHONE TO SCAN FLOOR';
+          const session=renderer.xr.getSession();
+          viewerSpace=await session.requestReferenceSpace('viewer');
+          hitSource=await session.requestHitTestSource({space:viewerSpace});
+          const controller=renderer.xr.getController(0);
+          controller.addEventListener('select',()=>{if(!placed)placeTerrain();else shoot()});
+          scene.add(controller);
+        });
       }else{startDesktop()}
     }
     function startDesktop(){isAR=false;started=placed=true;$('#start').style.display='none';$('#hud').style.display='block';$('#desktopHelp').style.display='block';createWorld()}
     $('#startBtn').onclick=launch;
-    $('#place').onclick=()=>{if(!reticle.visible)return;world=new THREE.Group();createWorld();world.position.setFromMatrixPosition(reticle.matrix);placed=true;reticle.visible=false;$('#place').style.display='none';$('#hud').style.display='block'};
+    function placeTerrain(){
+      if(placed)return;
+      let anchor;
+      if(reticle.visible){
+        anchor=reticle.matrix.clone();
+      }else{
+        // Reliable fallback for phones that start AR but do not return a floor hit.
+        // Place the terrain 2.5 m ahead and approximately at floor height.
+        const pos=new THREE.Vector3(),dir=new THREE.Vector3(),quat=new THREE.Quaternion(),scale=new THREE.Vector3(1,1,1);
+        camera.getWorldPosition(pos);camera.getWorldDirection(dir);dir.y=0;
+        if(dir.lengthSq()<.01)dir.set(0,0,-1);dir.normalize();
+        pos.addScaledVector(dir,2.5);pos.y-=1.35;
+        anchor=new THREE.Matrix4().compose(pos,quat,scale);
+      }
+      createWorld(anchor);placed=true;reticle.visible=false;
+      $('#place').style.display='none';$('#hud').style.display='block';
+    }
+    const placeBtn=$('#place');
+    placeBtn.addEventListener('beforexrselect',e=>e.preventDefault());
+    placeBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();placeTerrain()});
+    placeBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();placeTerrain()});
     function render(t,frame){
       const dt=Math.min(clock.getDelta(),.05);
-      if(isAR&&frame&&!placed&&hitSource){const hits=frame.getHitTestResults(hitSource);if(hits.length){reticle.visible=true;reticle.matrix.fromArray(hits[0].getPose(renderer.xr.getReferenceSpace()).transform.matrix)}}
+      if(isAR&&frame&&!placed&&hitSource){
+        const hits=frame.getHitTestResults(hitSource);
+        if(hits.length){
+          reticle.visible=true;
+          reticle.matrix.fromArray(hits[0].getPose(renderer.xr.getReferenceSpace()).transform.matrix);
+          $('#place').textContent='PLACE TERRAIN HERE';
+        }else{
+          reticle.visible=false;
+          $('#place').textContent='PLACE IN FRONT (OR KEEP SCANNING)';
+        }
+      }
       if(placed){updateZombies(dt);particles.forEach((p,i)=>{p.position.add(p.userData.v);p.userData.v.y-=.004;if(--p.userData.life<=0){scene.remove(p);particles.splice(i,1)}});weaponRig.position.y=-.27+Math.sin(t*.003)*.006}
       renderer.render(scene,camera);
     }
